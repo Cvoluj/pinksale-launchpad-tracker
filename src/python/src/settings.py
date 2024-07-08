@@ -31,6 +31,8 @@ DOWNLOAD_TIMEOUT = int(os.getenv("DOWNLOAD_TIMEOUT", "180"))
 TELNETCONSOLE_ENABLED = False
 TELNETCONSOLE_PASSWORD = "password"
 
+COOKIES_ENABLED=True
+
 # Override the default request headers:
 DEFAULT_REQUEST_HEADERS = {
     "Accept-Language": "en-US,en;q=0.5",
@@ -42,6 +44,7 @@ ROTATING_PROXIES_DOWNLOADER_HANDLER_AUTO_CLOSE_CACHED_CONNECTIONS_ENABLED: bool 
 DOWNLOADER_MIDDLEWARES = {
     "scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware": None,
     "middlewares.HttpProxyMiddleware": 543,
+    "middlewares.cloudflare_bypass_middleware.CloudflareMiddleware": 600,
 }
 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
