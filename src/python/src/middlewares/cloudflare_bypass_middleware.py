@@ -2,8 +2,8 @@ import cloudscraper
 from utils.logger_mixin import LoggerMixin
 from scrapy.http import HtmlResponse
 
-class CloudflareMiddleware(LoggerMixin):
 
+class CloudflareMiddleware(LoggerMixin):
     cloudflare_scraper = cloudscraper.create_scraper()
 
     def process_response(self, request, response, spider):

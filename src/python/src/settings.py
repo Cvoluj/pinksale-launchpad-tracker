@@ -12,6 +12,8 @@ load_dotenv()
 
 BOT_NAME = "YOUR_PROJECT_NAME"
 
+STORAGE_PATH = os.getenv("STORAGE_PATH", '../../storage/')
+
 SPIDER_MODULES = ["spiders"]
 NEWSPIDER_MODULE = "spiders"
 COMMANDS_MODULE = "commands"
