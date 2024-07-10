@@ -72,10 +72,10 @@ class Pinksalespider(scrapy.Spider):
         if contacts:
             item['website'] = contacts[0] if 't.me' not in contacts[0] else None
             item['telegram'] = next((url for url in contacts if 't.me' in url), None)
+            item['twitter'] = next((url for url in contacts if 'x.com' in url), None)
+            
         if item['website']:
-            # pass
             yield scrapy.Request(url=item['website'], callback=self.parse_website,  meta={'item': item}, errback=self.errback_httpbin)
-        # yield item
         
     def parse_website(self, response: Response):
         item = response.meta['item']        
@@ -96,4 +96,3 @@ class Pinksalespider(scrapy.Spider):
             self.logger.error(failure.getErrorMessage())
         else:
             self.logger.error(repr(failure))
-

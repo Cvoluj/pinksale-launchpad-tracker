@@ -15,3 +15,5 @@ class Project(Base, MysqlPrimaryKeyMixin, MysqlTimestampsMixin):
     email = Column('email', String(255), nullable=True)
     website = Column('website', String(STR_768), nullable=True)
     telegram = Column('telegram', String(STR_768), nullable=True)
+    twitter = Column('twitter', String(STR_768), nullable=True)
+

@@ -10,4 +10,4 @@ class ProjectItem(RMQItem):
     title = Field()
     website = Field()
     telegram = Field()
-    
+    twitter = Field()

@@ -13,6 +13,7 @@ class Exporter(CSVExporter):
             Project.email,
             Project.website,
             Project.telegram,
+            Project.twitter,
             Project.created_at,
             ]).order_by(Project.id.asc())
         return stmt
