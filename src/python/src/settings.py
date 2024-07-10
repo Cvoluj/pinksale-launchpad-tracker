@@ -43,10 +43,14 @@ DEFAULT_REQUEST_HEADERS = {
 
 ROTATING_PROXIES_DOWNLOADER_HANDLER_AUTO_CLOSE_CACHED_CONNECTIONS_ENABLED: bool = True
 
+RETRY_HTTP_CODES = [500, 502, 503, 504, 522, 524, 408, 429]
+RETRY_TIMES = 2
+
 DOWNLOADER_MIDDLEWARES = {
     "scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware": None,
     "middlewares.HttpProxyMiddleware": 543,
-    "middlewares.cloudflare_bypass_middleware.CloudflareMiddleware": 600,
+    "middlewares.CloudflareMiddleware": 600,
+    "middlewares.RetryRequestMiddleware": 550,
 }
 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")

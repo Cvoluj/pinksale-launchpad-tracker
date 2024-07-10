@@ -1,11 +1,13 @@
 import cloudscraper
+# import cfscrape
 from utils.logger_mixin import LoggerMixin
 from scrapy.http import HtmlResponse
 
 
 class CloudflareMiddleware(LoggerMixin):
     cloudflare_scraper = cloudscraper.create_scraper()
-
+    # cloudflare_scraper = cfscrape.create_scraper()
+    
     def process_response(self, request, response, spider):
         request_url = request.url
         response_status = response.status

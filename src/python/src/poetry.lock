@@ -333,6 +333,20 @@ files = [
 ]
 
 [[package]]
+name = "cfscrape"
+version = "2.1.1"
+description = "A simple Python module to bypass Cloudflare's anti-bot page. See https://github.com/Anorov/cloudflare-scrape for more information."
+optional = false
+python-versions = "*"
+files = [
+    {file = "cfscrape-2.1.1-py3-none-any.whl", hash = "sha256:c62085b42822e196907196f6a09561ec6b2aea8bd87e5a6f84d382e60dd23fe4"},
+    {file = "cfscrape-2.1.1.tar.gz", hash = "sha256:7c5ef94554e0d6ee7de7cd0d42051526e716ce6c0357679ee0b82c49e189e2ef"},
+]
+
+[package.dependencies]
+requests = ">=2.6.1"
+
+[[package]]
 name = "charset-normalizer"
 version = "3.3.2"
 description = "The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet."
@@ -2395,4 +2409,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "aee566c6073158be0ffaa387bc78451f9c391c3b48ba9a9914478469c36119b0"
+content-hash = "94713cf905ceed2b110a5de71ebe9c278a4a4b76544070be1f5056e3ae9c4e62"

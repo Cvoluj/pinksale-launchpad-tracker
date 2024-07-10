@@ -23,6 +23,8 @@ paramiko = "^2.7.2"
 pydantic = "^1.8.1"
 pytest = "^6.2.3"
 cloudscraper = "^1.2.71"
+cfscrape = "^2.1.1"
+urllib3 = "2.2.0"
 
 [tool.poetry.dev-dependencies]
 scrapy-new = "^0.2"
