@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 import os
+import sys
 from datetime import datetime, timedelta
 from distutils.util import strtobool
 from typing import Dict
@@ -10,7 +11,12 @@ from scrapy.utils.log import configure_logging
 
 load_dotenv()
 
+sys.path.append(os.path.join(os.path.dirname(__file__), './interface'))
+
 BOT_NAME = "YOUR_PROJECT_NAME"
+
+BOT_TOKEN = os.getenv("BOT_TOKEN", "")
+LOGS_CHAT = os.getenv("LOGS_CHAT", "")
 
 STORAGE_PATH = os.getenv("STORAGE_PATH", '../../storage/')
 

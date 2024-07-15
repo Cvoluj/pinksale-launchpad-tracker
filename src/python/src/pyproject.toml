@@ -25,6 +25,8 @@ pytest = "^6.2.3"
 cloudscraper = "^1.2.71"
 cfscrape = "^2.1.1"
 urllib3 = "2.2.0"
+aiogram = "2.25.2"
+apscheduler = "^3.10.4"
 
 [tool.poetry.dev-dependencies]
 scrapy-new = "^0.2"
