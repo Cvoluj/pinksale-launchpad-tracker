@@ -17,8 +17,10 @@ BOT_NAME = "YOUR_PROJECT_NAME"
 
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 LOGS_CHAT = os.getenv("LOGS_CHAT", "")
+DEXSCRENER_PAGE_COUNT = int(os.getenv("DEXSCRENER_PAGE_COUNT", 10))
 
 STORAGE_PATH = os.getenv("STORAGE_PATH", '../../storage/')
+
 
 SPIDER_MODULES = ["spiders"]
 NEWSPIDER_MODULE = "spiders"

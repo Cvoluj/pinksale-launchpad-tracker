@@ -24,7 +24,7 @@ class ProjectToDatabasePipeline(LoggerMixin):
             )
         
     def process_item(self, item, spider):
-        query: Insert = insert(Project).values(**item).on_duplicate_key_update(**item)
+        query: Insert = insert(Project).values(**item, **{'exported': 0}).on_duplicate_key_update(**item)
         d = self.conn.runQuery(*compile_expression(query))
         d.addCallback(self.handle_process_item)
         d.addErrback(self.handle_error, item, spider)

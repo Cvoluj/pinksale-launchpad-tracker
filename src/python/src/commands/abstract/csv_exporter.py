@@ -47,7 +47,28 @@ class CSVExporter(BaseCommand):
         This method must returns sqlalchemy Executable or string that represents valid raw SQL select query
         """
         raise NotImplementedError
+    
+    def update_results_on_exporting(self, project_ids: List[int]):
+        """
+        This method is used for handling changes after export
+        """        
+        # update_stmt = (
+        #     update(Model)
+        #     .where(Model.id.in_(project_ids))
+        #     .values(...)
+        # )
+        # d = self.conn.runInteraction(self.update_interaction, update_stmt)
+        # d.addErrback(self.handle_error)
+    
+    def update_interaction(self, transaction, stmt):
+        if isinstance(stmt, ClauseElement):
+            # parameter passing method describes here: https://peps.python.org/pep-0249/#id20
+            transaction.execute(*compile_expression(stmt))
+        else:
+            transaction.execute(stmt)
 
+        return transaction.fetchall()
+        
     def get_interaction(self, transaction):
         """If building task requires several queries to db or single query has extreme difficulty
         then this method could be overridden.
@@ -79,7 +100,7 @@ class CSVExporter(BaseCommand):
 
     def process_export(self, rows):
         """
-        if we got rows - create file
+        if we got rows - create file, process row
         if no rows and file created - export finished
         if no rows and file don't created - nothing found
         """
@@ -93,6 +114,7 @@ class CSVExporter(BaseCommand):
             rows = self.map_columns(rows)
             self.get_headers(rows[0])
             self.save(rows)
+            self.update_results_on_exporting([row['id'] for row in rows])
 
     def save(self, rows: List[Dict]) -> None:
         """
@@ -136,3 +158,6 @@ class CSVExporter(BaseCommand):
     def run(self, args: list[str], opts: Namespace):
         reactor.callLater(0, self.execute, args, opts)
         reactor.run()
+
+    def handle_error(self, failure):
+        self.logger.error(f'Error updating exported flag: {failure}')

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String
+from sqlalchemy import Column, String, Boolean
 
 from database.models import Base
 from .mixins import MysqlPrimaryKeyMixin, MysqlTimestampsMixin
@@ -16,4 +16,4 @@ class Project(Base, MysqlPrimaryKeyMixin, MysqlTimestampsMixin):
     website = Column('website', String(STR_768), nullable=True)
     telegram = Column('telegram', String(STR_768), nullable=True)
     twitter = Column('twitter', String(STR_768), nullable=True)
-
+    exported = Column('exported', Boolean, nullable=False, default=False)
