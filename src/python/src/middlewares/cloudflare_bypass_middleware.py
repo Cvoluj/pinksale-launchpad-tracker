@@ -11,7 +11,7 @@ class CloudflareMiddleware(LoggerMixin):
     def process_response(self, request, response, spider):
         request_url = request.url
         response_status = response.status
-        if response_status not in (403, 503):
+        if response_status not in (403, 503, 429):
             return response
         
         self.logger.info("Cloudflare detected. Using cloudscraper on URL: %s", request_url)
