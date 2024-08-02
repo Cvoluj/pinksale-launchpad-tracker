@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 from twisted.internet.error import DNSLookupError
 from scrapy.http import Response, JsonRequest, Request
 from scrapy.spidermiddlewares.httperror import HttpError
+from rmq.utils.import_full_name import get_import_full_name
+from pipelines import ProjectToDatabasePipeline
 
 from items import ProjectItem
 
@@ -13,6 +15,12 @@ class GeckoTerminalSpider(scrapy.Spider):
     BASE_URL = 'https://www.geckoterminal.com/'
     PAGINATION_URL = 'https://app.geckoterminal.com/api/p1/latest_pools?pool_creation_hours_ago%5Blte%5D=72'
 
+    custom_settings = {
+        "ITEM_PIPELINES": {
+            get_import_full_name(ProjectToDatabasePipeline): 310,
+        },
+    }
+    
     start_urls = [
         'https://app.geckoterminal.com/api/p1/dexes?include=network%2Cdex_metric',
     ]
