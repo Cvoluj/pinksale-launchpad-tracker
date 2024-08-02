@@ -1,10 +1,12 @@
 import json
 import re
 import scrapy
+from scrapy import signals
 from datetime import datetime, timedelta
 from twisted.internet.error import DNSLookupError
 from scrapy.http import Response, JsonRequest, Request
 from scrapy.spidermiddlewares.httperror import HttpError
+from utils.load_json_file import load_json_file
 from rmq.utils.import_full_name import get_import_full_name
 from pipelines import ProjectToDatabasePipeline
 
@@ -26,7 +28,13 @@ class GeckoTerminalSpider(scrapy.Spider):
     ]
 
     # use for setting up how old pools to scrap
-    hours = 12
+    hours = 1
+
+    @classmethod
+    def from_crawler(cls, crawler, *args, **kwargs):
+        spider = super(GeckoTerminalSpider, cls).from_crawler(crawler, *args, **kwargs)
+        crawler.signals.connect(spider.spider_closed, signal=signals.spider_closed)
+        return spider
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -119,3 +127,11 @@ class GeckoTerminalSpider(scrapy.Spider):
             self.logger.error(failure.getErrorMessage())
         else:
             self.logger.error(repr(failure))
+
+    def spider_closed(self, spider):
+        json_file_path = 'scraper_status.json'
+        scraper_status = load_json_file(json_file_path)
+        scraper_status[self.name] = True
+
+        with open('scraper_status.json', 'w') as json_file:
+            json.dump(scraper_status, json_file, indent=4)

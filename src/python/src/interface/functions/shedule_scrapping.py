@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import pytz
 from main import bot, dp
@@ -9,6 +10,7 @@ from interface.data.config import logs
 async def send_greeting():
     process = CrawlerProcess(get_project_settings())
     process.crawl('pinksale')
+    process.crawl('gecko')
     process.start()
 
     kyiv_tz = pytz.timezone('Europe/Kyiv')

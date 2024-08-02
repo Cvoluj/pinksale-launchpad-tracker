@@ -1,9 +1,10 @@
+import json
 import re
 import scrapy
 import asyncio
 import nodriver as uc
+from scrapy import signals
 from scrapy.http import TextResponse, Response
-from scrapy.utils.reactor import install_reactor
 from scrapy.utils.project import get_project_settings
 from scrapy.spidermiddlewares.httperror import HttpError
 from twisted.internet.error import DNSLookupError
@@ -13,21 +14,25 @@ from twisted.enterprise.adbapi import ConnectionPool
 from items import ProjectItem
 from pipelines import ProjectToDatabasePipeline
 
-install_reactor('twisted.internet.asyncioreactor.AsyncioSelectorReactor')
-
 class DexScreenerSpider(scrapy.Spider):
     name = 'dexscreener'
     project_settings = get_project_settings()
     
     start_urls = [
-        'https://dexscreener.com/page-1?rankBy=pairAge&order=asc',
+        # 'https://dexscreener.com/page-1?rankBy=pairAge&order=asc',
         
         # link for checking, because on trending we have more info and websites
-        # 'https://dexscreener.com/?rankBy=trendingScoreH24&order=desc', 
+        'https://dexscreener.com/?rankBy=trendingScoreH24&order=desc', 
         ]
     
     BASE_URL = 'https://dexscreener.com/'
     page_number = 1
+
+    @classmethod
+    def from_crawler(cls, crawler, *args, **kwargs):
+        spider = super(DexScreenerSpider, cls).from_crawler(crawler, *args, **kwargs)
+        crawler.signals.connect(spider.spider_closed, signal=signals.spider_closed)
+        return spider
     
     def __init__(self, *args, **kwargs):
         super(DexScreenerSpider, self).__init__(*args, **kwargs)
@@ -43,8 +48,15 @@ class DexScreenerSpider(scrapy.Spider):
                 charset="utf8mb4",
                 cp_reconnect=True,
             )
-        self.loop = asyncio.ProactorEventLoop()
-        asyncio.set_event_loop(self.loop)
+        
+        if kwargs.get('loop'):
+            self.from_crawler_process = True
+            self.loop = kwargs.get('loop')
+            asyncio.set_event_loop(self.loop)
+        else:
+            self.from_crawler_process = False
+            self.loop = asyncio.ProactorEventLoop()
+            asyncio.set_event_loop(self.loop)
     
     def start_requests(self):
         for url in self.start_urls:
@@ -52,7 +64,10 @@ class DexScreenerSpider(scrapy.Spider):
     
     async def initial_parse_pagination(self, response):
         url = response.meta['url']
-        content = self.loop.run_until_complete(self.fetch_pagination(url))
+        if self.from_crawler_process:
+            content = await self.fetch_pagination(url)
+        else:
+            content = self.loop.run_until_complete(self.fetch_pagination(url))
         response = scrapy.http.TextResponse(url=url, body=content, encoding='utf-8')
         await self.parse_pagination(response)
 
@@ -66,15 +81,23 @@ class DexScreenerSpider(scrapy.Spider):
             item['project_id'] = url.split('/')[-1]            
             item['title'] = title
             
-            detail_page_content = self.loop.run_until_complete(self.fetch_detail_page(url))
+            if self.from_crawler_process:
+                detail_page_content = await self.fetch_detail_page(url)
+            else:
+                detail_page_content = self.loop.run_until_complete(self.fetch_detail_page(url))
+            
             response = scrapy.http.TextResponse(url=url, body=detail_page_content, encoding='utf-8')
             await self.parse_detail_page(response, meta={"item": item})
             
         self.page_number += 1
-        next_page = f'https://dexscreener.com/page-{self.page_number}?rankBy=trendingScoreH24&order=desc'
+        next_page = f'https://dexscreener.com/page-{self.page_number}?rankBy=pairAge&order=asc'
         
         if response.status == 200 and self.page_number <= self.project_settings.getint("DEXSCRENER_PAGE_COUNT"):
-            content = self.loop.run_until_complete(self.fetch_pagination(next_page))
+
+            if self.from_crawler_process:
+                content = await self.fetch_pagination(next_page)
+            else:
+                content = self.loop.run_until_complete(self.fetch_pagination(next_page))
             next_response = scrapy.http.TextResponse(url=next_page, body=content, encoding='utf-8')
             await self.parse_pagination(next_response)
                         
@@ -90,7 +113,12 @@ class DexScreenerSpider(scrapy.Spider):
             item['twitter'] = next((url for url in contacts if 'x.com' in url), None)        
         if item['website']:
             self.logger.info(f'Found website: {item["website"]}')
-            content = self.loop.run_until_complete(self.fetch_website(item['website']))
+            
+            if self.from_crawler_process:
+                content = await self.fetch_website(item['website'])
+            else:
+                content = self.loop.run_until_complete(self.fetch_website(item['website']))
+            
             next_response = scrapy.http.TextResponse(url=item['website'], body=content, encoding='utf-8')
             await self.parse_website(next_response, meta={'item': item})
         
@@ -145,4 +173,11 @@ class DexScreenerSpider(scrapy.Spider):
             self.logger.error(failure.getErrorMessage())
         else:
             self.logger.error(repr(failure))
-            
+    
+    def spider_closed(self, spider):
+        status = {
+            self.name: True
+        }
+
+        with open('scraper_status.json', 'w') as json_file:
+            json.dump(status, json_file, indent=4)

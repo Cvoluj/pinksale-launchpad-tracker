@@ -1,6 +1,7 @@
 import json
 import re
 import scrapy
+from scrapy import signals
 from scrapy.http import Response
 from scrapy.spidermiddlewares.httperror import HttpError
 from twisted.internet.error import DNSLookupError
@@ -38,9 +39,18 @@ class Pinksalespider(scrapy.Spider):
         501424: 'solana/launchpad/',
     }
 
+    @classmethod
+    def from_crawler(cls, crawler, *args, **kwargs):
+        spider = super(Pinksalespider, cls).from_crawler(crawler, *args, **kwargs)
+        crawler.signals.connect(spider.spider_closed, signal=signals.spider_closed)
+        return spider
+
     def start_requests(self):
         base_url = 'https://api.pinksale.finance/api/v1/pool/list'
-        filters = ['upcoming', 'inprogress']
+        filters = [
+            'upcoming', 
+            # 'inprogress',
+            ]
 
         for filter_type in filters:
             url = f"{base_url}?page=1&limit=21&filterBy={filter_type}&excludeChainIds[]=97&excludeChainIds[]=501423"
@@ -101,7 +111,15 @@ class Pinksalespider(scrapy.Spider):
         else:
             self.logger.error(repr(failure))
 
-    def closed(self, reason):
-        self.logger.info(f'Spider closed: {reason}')
-        exporter = Exporter()
-        reactor.callLater(0, exporter.run, [], None)
+    def spider_closed(self, spider):
+        status = {
+            self.name: True
+        }
+
+        with open('scraper_status.json', 'w') as json_file:
+            json.dump(status, json_file, indent=4)
+
+    # def closed(self, reason):
+    #     self.logger.info(f'Spider closed: {reason}')
+    #     exporter = Exporter()
+    #     reactor.callLater(0, exporter.run, [], None)

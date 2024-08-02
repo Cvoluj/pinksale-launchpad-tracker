@@ -1,17 +1,11 @@
 from main import bot, dp
+from aiogram import types
+from keyboards.keyboards import get_start_keyboard
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
 from interface.data.config import logs
 from interface.filters.filter import *
 from interface.functions.shedule_scrapping import send_greeting
-from keyboards.keyboards import get_start_keyboard
-
-import os
-from aiogram import types
-from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import Text
-from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, ParseMode, KeyboardButton, ContentTypes, ReplyKeyboardMarkup, \
-    InputFile
-
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 
 html = 'HTML'
@@ -19,7 +13,7 @@ html = 'HTML'
 # Define the scheduler
 scheduler = AsyncIOScheduler(timezone='Europe/Kyiv')
 async def scheduler_jobs():
-    scheduler.add_job(send_greeting, 'cron', hour=14, minute=52)
+    scheduler.add_job(send_greeting, 'cron', hour=17, minute=27)
     scheduler.start()
 
 async def antiflood(*args, **kwargs):
