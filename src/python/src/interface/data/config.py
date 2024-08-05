@@ -11,4 +11,4 @@ urls = {
 }
 
 administrators = [123]
-logs = int(project_settings.get("LOGS_CHAT"))
+logs = -int(project_settings.get("LOGS_CHAT"))

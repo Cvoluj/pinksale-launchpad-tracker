@@ -1,17 +1,11 @@
-import asyncio
 import datetime
 import pytz
-from main import bot, dp
-from scrapy.crawler import CrawlerProcess
-from scrapy.utils.project import get_project_settings
-
+from main import bot
 from interface.data.config import logs
 
+from commands.crawler_runner import run_crawler
 async def send_greeting():
-    process = CrawlerProcess(get_project_settings())
-    process.crawl('pinksale')
-    process.crawl('gecko')
-    process.start()
+    run_crawler()
 
     kyiv_tz = pytz.timezone('Europe/Kyiv')
     kyiv_time = datetime.datetime.now(kyiv_tz)

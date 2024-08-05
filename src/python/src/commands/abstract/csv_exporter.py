@@ -108,7 +108,7 @@ class CSVExporter(BaseCommand):
             if self.file_exists:
                 self.logger.warning(f'Export finished successfully to {path.basename(self.file_path)}.')
             else:
-                self.logger.warning('Nothing found')
+                self.logger.warning('Nothing found to export')
             reactor.stop()
         else:
             rows = self.map_columns(rows)
@@ -157,7 +157,8 @@ class CSVExporter(BaseCommand):
 
     def run(self, args: list[str], opts: Namespace):
         reactor.callLater(0, self.execute, args, opts)
-        reactor.run()
+        if not reactor.running:
+            reactor.run()
 
     def handle_error(self, failure):
         self.logger.error(f'Error updating exported flag: {failure}')

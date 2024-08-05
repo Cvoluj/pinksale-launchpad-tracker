@@ -5,11 +5,9 @@ from scrapy import signals
 from scrapy.http import Response
 from scrapy.spidermiddlewares.httperror import HttpError
 from twisted.internet.error import DNSLookupError
-from twisted.internet import reactor
 from rmq.utils.import_full_name import get_import_full_name
 from items import ProjectItem
 from pipelines import ProjectToDatabasePipeline
-from commands.exporter.export import Exporter
 
 class Pinksalespider(scrapy.Spider):
     BASE_URL = 'https://www.pinksale.finance/'
@@ -49,7 +47,7 @@ class Pinksalespider(scrapy.Spider):
         base_url = 'https://api.pinksale.finance/api/v1/pool/list'
         filters = [
             'upcoming', 
-            # 'inprogress',
+            'inprogress',
             ]
 
         for filter_type in filters:
@@ -112,14 +110,4 @@ class Pinksalespider(scrapy.Spider):
             self.logger.error(repr(failure))
 
     def spider_closed(self, spider):
-        status = {
-            self.name: True
-        }
-
-        with open('scraper_status.json', 'w') as json_file:
-            json.dump(status, json_file, indent=4)
-
-    # def closed(self, reason):
-    #     self.logger.info(f'Spider closed: {reason}')
-    #     exporter = Exporter()
-    #     reactor.callLater(0, exporter.run, [], None)
+        self.logger.info("Spider %s closed", self.name)

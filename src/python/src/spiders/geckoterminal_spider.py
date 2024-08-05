@@ -28,7 +28,7 @@ class GeckoTerminalSpider(scrapy.Spider):
     ]
 
     # use for setting up how old pools to scrap
-    hours = 1
+    hours = 12
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
@@ -129,9 +129,4 @@ class GeckoTerminalSpider(scrapy.Spider):
             self.logger.error(repr(failure))
 
     def spider_closed(self, spider):
-        json_file_path = 'scraper_status.json'
-        scraper_status = load_json_file(json_file_path)
-        scraper_status[self.name] = True
-
-        with open('scraper_status.json', 'w') as json_file:
-            json.dump(scraper_status, json_file, indent=4)
+        self.logger.info("Spider %s closed", self.name)

@@ -175,9 +175,4 @@ class DexScreenerSpider(scrapy.Spider):
             self.logger.error(repr(failure))
     
     def spider_closed(self, spider):
-        status = {
-            self.name: True
-        }
-
-        with open('scraper_status.json', 'w') as json_file:
-            json.dump(status, json_file, indent=4)
+        self.logger.info("Spider %s closed", self.name)
