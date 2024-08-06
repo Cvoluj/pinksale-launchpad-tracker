@@ -121,6 +121,8 @@ class DexScreenerSpider(scrapy.Spider):
             
             next_response = scrapy.http.TextResponse(url=item['website'], body=content, encoding='utf-8')
             await self.parse_website(next_response, meta={'item': item})
+        elif item.get('twitter'):
+            self.pipeline.process_item(item=item, spider=self)
         
     async def parse_website(self, response: Response, meta: dict):
         item = meta['item']

@@ -107,6 +107,8 @@ class GeckoTerminalSpider(scrapy.Spider):
         if item['website']:
             self.logger.info(f'Found website: {item["website"]}')
             yield scrapy.Request(url=item['website'], callback=self.parse_website, meta={'item': item}, errback=self.errback_httpbin)
+        elif item.get('twitter'):
+            yield item
 
     def parse_website(self, response: Response):
         item = response.meta['item']

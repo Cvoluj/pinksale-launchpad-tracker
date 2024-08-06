@@ -10,6 +10,7 @@ def run(q):
         runner = CrawlerRunner(get_project_settings())
         runner.crawl('pinksale')
         runner.crawl('gecko')
+        runner.crawl('pump')
         d = runner.join()
         d.addCallback(export)  
         reactor.run()
