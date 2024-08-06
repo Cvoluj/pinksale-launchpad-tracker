@@ -1,5 +1,6 @@
 import json
 import re
+from typing import Iterable
 import scrapy
 from scrapy import signals
 from datetime import datetime, timedelta
@@ -12,9 +13,10 @@ from pipelines import ProjectToDatabasePipeline
 from items import ProjectItem
 
 class GeckoTerminalSpider(scrapy.Spider):
-    name = 'gecko'
+    name = 'gecko_v1'
+    cookie_string = '__cf_bm=Fhn.jOWk8T3CyKYXf1H.WydNjhXA20psq.Lwhp7P01M-1722986962-1.0.1.1-t6PqlNb.l7COZPwHErb2gt6q.yauAtqkTRnynkoqt9dqAXCArnZTiYLmUe5K3eYsEDkVuRzOTshpcEeiFdoHhw; Expires=Tue, 06 Aug 2024 23:59:22 GMT; Domain=geckoterminal.com; Path=/; Secure; HttpOnly'
     BASE_URL = 'https://www.geckoterminal.com/'
-    PAGINATION_URL = 'https://api.geckoterminal.com/api/v2/networks/new_pools'
+    PAGINATION_URL = 'https://app.geckoterminal.com/api/p1/latest_pools?pool_creation_hours_ago%5Blte%5D=72'
 
     custom_settings = {
         "ITEM_PIPELINES": {
@@ -23,11 +25,15 @@ class GeckoTerminalSpider(scrapy.Spider):
     }
     
     start_urls = [
-        'data:,'
+        'https://app.geckoterminal.com/api/p1/dexes?include=network%2Cdex_metric',
     ]
 
     # use for setting up how old pools to scrap
     hours = 12
+
+    def start_requests(self):
+        yield Request(self.start_urls[0], cookies=self.parse_cookies(self.cookie_string),
+)
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
@@ -41,34 +47,55 @@ class GeckoTerminalSpider(scrapy.Spider):
         self.time_difference = timedelta()
 
     def parse(self, response: Response):
+        chains = {
+            '17495': 'flare',
+            '13174': 'solana',
+            '3': 'polygon_pos',
+        }
+        data = json.loads(response.body)
+
+        networks = {network['id']: network['attributes'].get('identifier') for network in data['included'] if network['type'] == 'network'}        
+        for chain in data['data']:
+           main_chain_id = chain['relationships'].get('network').get('data').get('id')
+           if main_chain_id:
+            chains[chain['id']] = networks[main_chain_id]
+        
         page = 1
         yield JsonRequest(f'{self.PAGINATION_URL}?page={page}',
                             callback=self.parse_pagination, meta={
+                                'chains': chains,
                                 'page': page,
                             })
         
     def parse_pagination(self, response: Response):
+        chains = response.meta.get('chains')
         page = response.meta.get('page')
         data = json.loads(response.body)
 
         for crypto_pool in data['data']:
             item = ProjectItem()
-            item['project_id'] = crypto_pool['id']
-            item['url'] = f"{self.BASE_URL}{item['project_id'].replace('_', '/pools/')}"
+            id = crypto_pool.get('relationships').get('dex').get('data').get('id')
+            network_id = chains.get(id)
+            item['project_id'] = crypto_pool['attributes']['address']
+            item['url'] = f"{self.BASE_URL}{network_id}/pools/{item['project_id']}"
             item['platform'] = 'www.geckoterminal.com'
             item['title'] = crypto_pool['attributes']['name']
 
-            time = datetime.strptime(crypto_pool['attributes']['pool_created_at'], "%Y-%m-%dT%H:%M:%SZ")
+            time = datetime.strptime(crypto_pool['attributes']['pool_created_at'], "%Y-%m-%dT%H:%M:%S.%fZ")
             self.time_difference = self.current_time - time
 
-            yield Request(item['url'], callback=self.parse_detail_page, meta={'item': item})
+            if network_id is None:
+                self.logger.warning("Network id is None: %s %s %s", id, item["title"], item['url'])
+
+            yield Request(item['url'], callback= self.parse_detail_page, meta={'item': item})
 
         if data['data'] and self.time_difference <= timedelta(hours=self.hours):
+            print(self.time_difference)
             page += 1
             yield JsonRequest(
-                f'{self.PAGINATION_URL}?page={page}',
+                f'{self.PAGINATION_URL}&page={page}',
                 callback=self.parse_pagination,
-                meta={'page': page,},
+                meta={'chains': chains, 'page': page},
                 errback=self.errback_httpbin
             )
     
@@ -98,13 +125,6 @@ class GeckoTerminalSpider(scrapy.Spider):
             item['email'] = emails[0]
             self.logger.info(f'Found email: {item["email"]}')
         yield item
-
-    def form_chains(self, data, chains = {}):
-        networks = {network['id']: network['attributes'].get('identifier') for network in data['included'] if network['type'] == 'network'}        
-        for chain in data['data']:
-            main_chain_id = chain['relationships'].get('network').get('data').get('id')
-            if main_chain_id:
-                chains[chain['id']] = networks[main_chain_id]
           
     def errback_httpbin(self, failure):
         if failure.check(HttpError):
@@ -117,3 +137,14 @@ class GeckoTerminalSpider(scrapy.Spider):
 
     def spider_closed(self, spider):
         self.logger.info("Spider %s closed", self.name)
+
+    def parse_cookies(self, raw_cookies):
+        cookies = {}
+        for cookie in raw_cookies.split('; '):    
+            try:
+                key = cookie.split('=')[0]
+                val = cookie.split('=')[1]
+                cookies[key] = val
+            except Exception:
+                pass
+        return cookies
