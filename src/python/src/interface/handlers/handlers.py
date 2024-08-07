@@ -1,22 +1,20 @@
-from main import bot, dp
 from aiogram import types
-from keyboards.keyboards import get_start_keyboard
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-
-from interface.data.config import logs
+from main import bot, dp
 from interface.filters.filter import *
-from interface.functions.shedule_scrapping import send_greeting
-
+from interface.data.config import logs
+from interface.functions.shedule_scrapping import send_report
+from interface.keyboards.keyboards import get_start_keyboard
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 html = 'HTML'
 
 # Define the scheduler
 scheduler = AsyncIOScheduler(timezone='Europe/Kyiv')
 async def scheduler_jobs():
-    scheduler.add_job(send_greeting, 'cron', hour=8)
-    scheduler.add_job(send_greeting, 'cron', hour=20)
+    scheduler.add_job(send_report, 'cron', hour=8)
+    scheduler.add_job(send_report, 'cron', hour=23, minute=15)
     scheduler.start()
-
+    
 async def antiflood(*args, **kwargs):
     m = args[0]
     await m.answer("Не поспішай :)")

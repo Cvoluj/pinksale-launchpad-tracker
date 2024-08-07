@@ -9,7 +9,7 @@ def run(q):
     try:
         runner = CrawlerRunner(get_project_settings())
         runner.crawl('pinksale')
-        runner.crawl('gecko')
+        # runner.crawl('gecko')
         runner.crawl('pump')
         d = runner.join()
         d.addCallback(export)  

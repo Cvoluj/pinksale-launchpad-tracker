@@ -14,7 +14,7 @@ from items import ProjectItem
 class PumpSpider(scrapy.Spider):
     name = 'pump'
     BASE_URL = 'pump.fun'
-    hours = 2
+    hours = 12
 
     custom_settings = {
         "ITEM_PIPELINES": {
