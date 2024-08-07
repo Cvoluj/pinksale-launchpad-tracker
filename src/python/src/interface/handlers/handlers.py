@@ -11,8 +11,10 @@ html = 'HTML'
 # Define the scheduler
 scheduler = AsyncIOScheduler(timezone='Europe/Kyiv')
 async def scheduler_jobs():
-    scheduler.add_job(send_report, 'cron', hour=8)
-    scheduler.add_job(send_report, 'cron', hour=23, minute=15)
+    scheduler.add_job(send_report, 'cron', hour=6)
+    scheduler.add_job(send_report, 'cron', hour=12)
+    scheduler.add_job(send_report, 'cron', hour=18)
+    scheduler.add_job(send_report, 'cron', hour=24)
     scheduler.start()
     
 async def antiflood(*args, **kwargs):
