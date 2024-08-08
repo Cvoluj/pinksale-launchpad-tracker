@@ -12,3 +12,5 @@ urls = {
 
 administrators = [123]
 logs = -int(project_settings.get("LOGS_CHAT"))
+
+EXPORT_PATH = '../../storage/export/'
